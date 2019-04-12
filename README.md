@@ -1,4 +1,4 @@
-# Summary: Averaging GPS Segments
+# Averaging GPS Segments
 This is a description of my idea that I implemented for the [**Averaging GPS Segments**](http://cs.uef.fi/sipu/segments) problem. More information about the problem can be found in the problem’s website, so we’ll skip introducing the problem and go straightly onto describing the proposed method for solving the problem.
 
 Though I’ve got more ideas to improve the accuracy (which will probably take some time to implement), currently, the method has achieved about 66% training accuracy according to the problem website. The implementation is available on GitHub in R Language: [Implementation](https://github.com/mohamad-amin/AveragingGPSSegments)
@@ -11,23 +11,18 @@ I’m going to describe the method in six main sections:
 4. Implementation and sample results
 5. Conclusion
 6. Citations
-# 1. Initial Idea
-----------
 
+# 1. Initial Idea
 The main idea behind this method is to watch each set from another perspective, in which the connections between each point in the segments are removed. Then we are faced with a 3-dimensional tabular data; the first dimension points to the segment in which the point lies (regarded as $$t$$), and the second ($$x$$) and third ($$y$$) dimensions show the coordinate for the point in the 2d axis.
 For example, for set 1, we have:
 
-![The original representation](https://paper-attachments.dropbox.com/s_63F395F72FDAF53A901DC382D62D1CCA12200EEA567CED160C47ED9734A7EACD_1555074187289_Screen+Shot+2019-04-12+at+5.32.59+PM.png)
-![Plotting the segments without the lines in between](https://paper-attachments.dropbox.com/s_63F395F72FDAF53A901DC382D62D1CCA12200EEA567CED160C47ED9734A7EACD_1555074085626_Screen+Shot+2019-04-12+at+5.31.16+PM.png)
-![Viewing the segments as tabular data](https://paper-attachments.dropbox.com/s_63F395F72FDAF53A901DC382D62D1CCA12200EEA567CED160C47ED9734A7EACD_1555074088677_Screen+Shot+2019-04-12+at+5.30.43+PM.png)
-
+![The original representation](https://github.com/mohamad-amin/AveragingGPSSegments/blob/master/media/1.png)
 
 If we view the data form such perspective, then probably a simple linear regression, or more precisely, a piecewise linear regression would be a good approximation of the correct segment. Also choosing the start and end points, choosing the number of knots and detecting the outlier segments would be a great challenge. 
 
 The simple linear regression and the piecewise linear regression (**linear spline**) with some outlier removals showed some good approximations:
 
-![X0 is $$x$$ and X1 is $$y$$ here, linear regression](https://paper-attachments.dropbox.com/s_63F395F72FDAF53A901DC382D62D1CCA12200EEA567CED160C47ED9734A7EACD_1555074533000_IMAGE+2019-04-12+173852.jpg)
-![X0 is $$x$$ and X1 is $$y$$ here, linear spline](https://paper-attachments.dropbox.com/s_63F395F72FDAF53A901DC382D62D1CCA12200EEA567CED160C47ED9734A7EACD_1555074521954_IMAGE+2019-04-12+173841.jpg)
+![regression on data](https://github.com/mohamad-amin/AveragingGPSSegments/blob/master/media/2.png)
 
 
 Using the [**linear spline**](https://www.analyticsvidhya.com/blog/2018/03/introduction-regression-splines-python-codes/) ****model was the main reason for using R language here, as the linear spline model isn’t available in python (actually, it is somehow available [here](http://lagrange.univ-lyon1.fr/docs/scipy/0.17.1/generated/scipy.interpolate.interp1d.html) as `interp1d`, but it’s so limited as it doesn’t offer parameter tuning and choosing the number of knots, and therefore is useless for us).
@@ -41,8 +36,6 @@ As the results showed, using splines for the approximation seems a good choice, 
 These questions are answered in the next section.
 
 # 2. Choosing the properties of the model
-----------
-
 We divide this section into three parts, each part answering one of the questions mentioned in the end of the previous section.
 
 ## **Choosing the predictor and the target**
@@ -51,7 +44,7 @@ For choosing the predictor, the idea was to choose the variable among which ther
 For example, in the first set, $$x$$ is the predictor and $$y$$ is the target for our linear spline model.
 But in the 7th set, $$y$$ seems a better choice as the predictor.
 ****
-![Set 7: choosing $$y$$ as the predictor yields a better result](https://paper-attachments.dropbox.com/s_63F395F72FDAF53A901DC382D62D1CCA12200EEA567CED160C47ED9734A7EACD_1555075878426_Screen+Shot+2019-04-12+at+6.01.10+PM.png)
+![predictor choice](https://github.com/mohamad-amin/AveragingGPSSegments/blob/master/media/3.png)
 
 ## **Choosing the start and end points**
 
@@ -73,12 +66,9 @@ $$(start, lm(start)) \to (end, lm(end))$$
 where $$lm$$ indicates the linear regression model’s prediction on input.
 
 # 3. Outlier segment detection
-----------
-
 As viewing the training set suggests, in cases like set 9 and set 1, which are depicted below, outlier detection can be a very good approach to optimize the prediction.
 
-![set 9: two potential outlier segments](https://paper-attachments.dropbox.com/s_63F395F72FDAF53A901DC382D62D1CCA12200EEA567CED160C47ED9734A7EACD_1555077270070_Screen+Shot+2019-04-12+at+6.24.22+PM.png)
-![set 1: one potential outlier segment](https://paper-attachments.dropbox.com/s_63F395F72FDAF53A901DC382D62D1CCA12200EEA567CED160C47ED9734A7EACD_1555077393246_Screen+Shot+2019-04-12+at+6.26.24+PM.png)
+![potential outlier segments](https://github.com/mohamad-amin/AveragingGPSSegments/blob/master/media/4.png)
 
 
 I chose to implement the DBScan clustering algorithm to detect the outlier segments, as the algorithm detect the outliers according to the density of the points in a region, which seems rational here. We first run a DBScan on the input set, with $$eps=.05$$ and $$MinPts = \text{count of segments in the set}$$, and identify the segments with at least 1 outlier point in them. If the count of segments detected as outlier are more than half of all of the segments, we increase the $$eps$$ by $$0.01$$ and again run the DBScan as mentioned. The algorithm for this is described below:
@@ -93,9 +83,7 @@ I chose to implement the DBScan clustering algorithm to detect the outlier segme
 **Sample result of the algorithm:**
 Red points correspond to the detected outlier segments, which are discarded before fitting the linear spline (or linear regression).
 
-![DBScan on set 9: two outlier segments](https://paper-attachments.dropbox.com/s_63F395F72FDAF53A901DC382D62D1CCA12200EEA567CED160C47ED9734A7EACD_1555078209198_Screen+Shot+2019-04-12+at+6.40.01+PM.png)
-![DBScan on set 1: three outlier segments](https://paper-attachments.dropbox.com/s_63F395F72FDAF53A901DC382D62D1CCA12200EEA567CED160C47ED9734A7EACD_1555078212216_Screen+Shot+2019-04-12+at+6.39.52+PM.png)
-
+![outlier segments](https://github.com/mohamad-amin/AveragingGPSSegments/blob/master/media/5.png)
 
 **Note:** It’s clear that the outlier detection must be the first phase of the algorithm after reading the input (before choosing the predictor, number of knots and …)
 
@@ -103,7 +91,6 @@ Red points correspond to the detected outlier segments, which are discarded befo
 Another idea was to detect outliers according to the [**high leverage points**](https://en.wikipedia.org/wiki/Leverage_(statistics)) and [**outliers**](https://stattrek.com/regression/influential-points.aspx) corresponding to a simple linear regression fit on the input dataset, which didn’t work so well after the implementation and lead to lower training score rather than the DBScan method, and hence was not used. ****
 
 # 4. Implementation and sample results
-----------
 
 The implementation of my proposed method is available on GitHub: [AveragingGPSSegments](https://github.com/mohamad-amin/AveragingGPSSegments)
 Here are some useful methods that are implemented and can be used: (assuming you are in the project directory)
@@ -133,7 +120,6 @@ And then uploading the result on the training webpage:
 The current accuracy achieved by the implementation is 66.32%. Although I think it’s already not that bad, noticing that the data has a high amount of irreducible error; I believe the accuracy can be enhanced by some better approximations of the outliers, starting points and the end points.
 
 # 5. Conclusion
-----------
 
 As the previous section suggests, the proposed method has a good rate of training error and is performing nicely, noticing the huge rate of irreducible error of the data. We used a combination of linear spline and linear regression models for predicting the approximated true road segments, with some tricks for choosing the starting points, ending points and using DBScan for detecting outliers.
 
