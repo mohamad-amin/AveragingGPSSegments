@@ -43,7 +43,6 @@ We divide this section into three parts, each part answering one of the question
 For choosing the predictor, the idea was to choose the variable among which there is a higher variance. As the input data is normalized, choosing the variable with the higher variance corresponds to higher accuracy in predicting the other variable and therefore (assuming other factors such as the start and endpoints constant) a more exact approximation of the ground truth for the segments.
 For example, in the first set, $$x$$ is the predictor and $$y$$ is the target for our linear spline model.
 But in the 7th set, $$y$$ seems a better choice as the predictor.
-****
 ![predictor choice](https://github.com/mohamad-amin/AveragingGPSSegments/blob/master/media/3.png)
 
 ## **Choosing the start and end points**
@@ -96,22 +95,26 @@ The implementation of my proposed method is available on GitHub: [AveragingGPSSe
 Here are some useful methods that are implemented and can be used: (assuming you are in the project directory)
 
 ## Reading the input set and converting to tabular data
-    source('functions/read_segments.R')
-    dataset = read_segment('training_data/0.csv')
-    print(head(dataset))
+```R
+source('functions/read_segments.R')
+dataset = read_segment('training_data/0.csv')
+print(head(dataset))
+```
 ![](https://paper-attachments.dropbox.com/s_63F395F72FDAF53A901DC382D62D1CCA12200EEA567CED160C47ED9734A7EACD_1555074088677_Screen+Shot+2019-04-12+at+5.30.43+PM.png)
 
 ## Plotting the result of algorithm on each set:
-    source('functions/draw_solution.R')
-    draw_route(1)
+```R
+source('functions/draw_solution.R')
+draw_route(1)
+```
 ![](https://paper-attachments.dropbox.com/s_63F395F72FDAF53A901DC382D62D1CCA12200EEA567CED160C47ED9734A7EACD_1555078659941_Screen+Shot+2019-04-12+at+6.47.28+PM.png)
 
 
 Getting complete output corresponding to the training data in `training_data` folder:
-
-    source('functions/save_solution.R')
-    save_predicted_segments('result.txt')
-
+```R
+source('functions/save_solution.R')
+save_predicted_segments('result.txt')
+```
 And then uploading the result on the training webpage:
 
 ![Sample results of the proposed method](https://paper-attachments.dropbox.com/s_63F395F72FDAF53A901DC382D62D1CCA12200EEA567CED160C47ED9734A7EACD_1555075375246_Screen+Shot+2019-04-12+at+5.52.42+PM.png)
