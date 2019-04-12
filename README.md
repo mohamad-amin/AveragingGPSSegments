@@ -135,7 +135,6 @@ Also, there are many points of improvement in the method for future work:
 2. Smarter choice of the begin and end points
 3. Smarter choice of knots used in linear spline, and tradeoff between using linear spline and linear regression
 # 6. Citations
-----------
 
 I think this method is a novel approach for solving this problem, and haven’t seen anyone using this approach for doing map-construction. However, I think I should cite the papers introducing “Linear Splines” and “DBScan” algorithms, as they’re the backbone of this method:
 
